@@ -1,0 +1,6 @@
+torch>=2.0.0
+numpy>=1.20.0
+
+# Optional: pandas, pyarrow for scripts/prepare_data.py parquet
+# Optional: verl for full training (see scripts/README_VERL.md)
+# Optional: pytest for pytest tests/ -v

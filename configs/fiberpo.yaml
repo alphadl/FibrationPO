@@ -1,0 +1,10 @@
+# FiberPO config snippet (merge with verl PPO/GRPO). Paper: arXiv:2603.08239. Not official.
+
+# Before training: import fiberpo.losses; fiberpo.losses.register_fiberpo_with_verl()
+# Under actor_rollout_ref.actor:
+#   policy_loss:
+#     loss_mode: fiberpo
+#     fiberpo_delta: 0.2
+#     fiberpo_epsilon: 0.2
+#   loss_agg_mode: seq-mean-token-mean
+# algorithm.adv_estimator: grpo
