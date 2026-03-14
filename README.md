@@ -41,3 +41,16 @@ python tests/run_tests.py
 - Synthetic data: `python scripts/prepare_data.py --output data/train.parquet --num 200`
 - Config snippet: `configs/fiberpo.yaml`
 - With verl: use existing GRPO/PPO workflows and set loss_mode to `fiberpo`; see `scripts/README_VERL.md` for a minimal run.
+
+## Citation
+
+If you use this reproduction or the original work, please cite:
+
+```bibtex
+@article{li2026fibration,
+  title={Fibration Policy Optimization},
+  author={Li, Chang and Tsu, Tshihao and Zhang, Yaren and Xue, Chao and He, Xiaodong},
+  journal={arXiv preprint arXiv:2603.08239},
+  year={2026}
+}
+```
