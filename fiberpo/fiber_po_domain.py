@@ -38,16 +38,15 @@ def fiber_po_domain_gated_ratios(
     if trajectory_index is None:
         trajectory_index = torch.arange(B, device=device)
     r_base_traj = _aggregate_and_gate(ratio, mask, trajectory_index, delta_trajectory)
-    log_res_traj = torch.log(ratio.clamp(min=1e-8)) - torch.log(r_base_traj.clamp(min=1e-8))
+    # Save token-level residual (deviation from trajectory aggregate) before coarser levels overwrite it.
+    token_log_res = torch.log(ratio.clamp(min=1e-8)) - torch.log(r_base_traj.clamp(min=1e-8))
     if prompt_group_index is not None:
         r_base_pg = _aggregate_and_gate(r_base_traj, mask, prompt_group_index, delta_prompt_group)
-        log_res_traj = torch.log(r_base_traj.clamp(min=1e-8)) - torch.log(r_base_pg.clamp(min=1e-8))
         r_base_traj = r_base_pg
     if domain_index is not None:
         r_base_dom = _aggregate_and_gate(r_base_traj, mask, domain_index, delta_domain)
-        log_res_traj = torch.log(r_base_traj.clamp(min=1e-8)) - torch.log(r_base_dom.clamp(min=1e-8))
         r_base_traj = r_base_dom
-    gated_log_res = _logclip(log_res_traj, epsilon_token) * mask
+    gated_log_res = _logclip(token_log_res, epsilon_token) * mask
     r_fiber = torch.exp(gated_log_res)
     gated_ratio = r_base_traj * r_fiber
     return gated_ratio * mask + (1.0 - mask)
@@ -141,8 +140,10 @@ def compute_policy_loss_fiberpo_domain(
         pg_loss = pg_loss * config.global_batch_info.get("dp_size", 1)
 
     ppo_kl = (negative_approx_kl * response_mask).sum() / response_mask.sum().clamp(min=1)
+    clipfrac = (torch.abs(ratio - gated_ratio) > 1e-5).float() * response_mask
+    clipfrac = clipfrac.sum() / response_mask.sum().clamp(min=1)
     pg_metrics = {
-        "actor/pg_clipfrac": 0.0,
+        "actor/pg_clipfrac": clipfrac.detach().item(),
         "actor/ppo_kl": ppo_kl.detach().item(),
         "actor/pg_clipfrac_lower": 0.0,
     }

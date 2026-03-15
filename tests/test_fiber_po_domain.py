@@ -23,6 +23,29 @@ def test_fiber_po_domain_shape() -> None:
     assert gated.shape == (B, T)
 
 
+def test_fiber_po_domain_token_variation() -> None:
+    """With domain+pg+trajectory indices, gated output must vary per-token (not collapse to per-group constant)."""
+    B, T = 4, 6
+    torch.manual_seed(7)
+    ratio = torch.exp(torch.randn(B, T) * 0.15)
+    mask = torch.ones(B, T)
+    domain_index = torch.tensor([0, 0, 1, 1])
+    prompt_group_index = torch.tensor([0, 0, 1, 1])
+    trajectory_index = torch.arange(B)
+
+    gated = fiber_po_domain_gated_ratios(
+        ratio, mask,
+        delta_domain=0.1, delta_prompt_group=0.15, delta_trajectory=0.2, epsilon_token=0.2,
+        domain_index=domain_index,
+        prompt_group_index=prompt_group_index,
+        trajectory_index=trajectory_index,
+    )
+    # Each row must have per-token variation (token logclip of token residual must differ across tokens)
+    for b in range(B):
+        assert not torch.allclose(gated[b], gated[b, 0].expand(T)), \
+            f"Row {b} has no token variation — token residual likely overwritten"
+
+
 def test_compute_policy_loss_fiberpo_domain() -> None:
     B, T = 4, 6
     torch.manual_seed(42)

@@ -39,7 +39,7 @@ def apc_obj_gated_ratios(
         device = ratio.device
         traj_ids = trajectory_index.view(B, 1).expand(-1, T)
         uniq = trajectory_index.unique()
-        gated_dev = torch.zeros_like(dev, device=device)
+        gated_dev = torch.zeros_like(dev)
         for uid in uniq:
             if uid < 0:
                 continue

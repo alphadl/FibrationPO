@@ -83,7 +83,7 @@ def fbg_gated_ratios_trajectory_token(
             r_base_gated = torch.exp(gated_agg_dev)
         else:
             r_base_gated = 1.0 + gated_agg_dev
-        log_residual = torch.log(ratio.clamp(min=1e-8)) - torch.log(r_base_gated.clamp(min=1e-8) + 1e-10)
+        log_residual = torch.log(ratio.clamp(min=1e-8)) - torch.log(r_base_gated.clamp(min=1e-8))
         gated_log_res = logclip_fiber_gate(log_residual, epsilon, sel.float())
         r_fiber = torch.exp(gated_log_res)
         gated_ratio = torch.where(sel, r_base_gated * r_fiber, gated_ratio)
